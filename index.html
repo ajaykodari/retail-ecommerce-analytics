@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetailIQ — Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#07090f;
+  --s1:#0d1117;
+  --s2:#161b27;
+  --b:rgba(255,255,255,0.06);
+  --a1:#00e5ff;
+  --a2:#ff5722;
+  --a3:#7c4dff;
+  --a4:#00e676;
+  --a5:#ffea00;
+  --tx:#dde6f0;
+  --mu:#4a5568;
+}
+
+html,body{
+  width:100vw;height:100vh;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+}
+
+/* grid noise bg */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
+  background-size:32px 32px;
+  pointer-events:none;z-index:0;
+}
+
+/* ── SHELL ── */
+.shell{
+  position:relative;z-index:1;
+  display:grid;
+  grid-template-columns:200px 1fr;
+  grid-template-rows:100vh;
+  width:100vw;height:100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--s1);
+  border-right:1px solid var(--b);
+  display:flex;flex-direction:column;
+  padding:20px 0;
+  height:100vh;
+}
+
+.logo{padding:0 18px 18px;border-bottom:1px solid var(--b);margin-bottom:14px}
+.logo-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--a1),var(--a3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.logo-tag{font-size:9px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+
+.nav-section{font-size:9px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;padding:4px 18px;margin:6px 0 2px}
+
+.nav-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 18px;cursor:pointer;
+  font-size:12px;font-weight:500;color:var(--mu);
+  border-left:2px solid transparent;
+  transition:all .18s;
+  user-select:none;
+}
+.nav-btn:hover{color:var(--tx);background:rgba(255,255,255,0.03)}
+.nav-btn.on{color:var(--a1);border-left-color:var(--a1);background:rgba(0,229,255,0.06)}
+.nav-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:currentColor;opacity:.6;flex-shrink:0;
+}
+
+.sidebar-bot{
+  margin-top:auto;padding:16px 18px;
+  border-top:1px solid var(--b);
+}
+.av{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--a1),var(--a3));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#07090f;
+}
+.av-wrap{display:flex;align-items:center;gap:10px}
+.av-name{font-size:12px;font-weight:600;color:var(--tx)}
+.av-role{font-size:10px;color:var(--mu)}
+
+/* ── MAIN ── */
+.main{
+  display:grid;
+  grid-template-rows:52px 1fr;
+  height:100vh;overflow:hidden;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;
+  background:var(--s1);
+  border-bottom:1px solid var(--b);
+  flex-shrink:0;
+}
+.tb-left{display:flex;align-items:center;gap:14px}
+.page-label{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;letter-spacing:1.5px;color:var(--tx);
+}
+.live{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.25);
+  border-radius:4px;padding:3px 8px;
+  font-size:10px;font-family:'DM Mono',monospace;color:var(--a4);
+}
+.live-d{width:5px;height:5px;border-radius:50%;background:var(--a4);animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.tb-right{display:flex;align-items:center;gap:10px}
+.pill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--s2);border:1px solid var(--b);
+  border-radius:6px;padding:5px 10px;
+  font-size:11px;color:var(--mu);cursor:pointer;
+  transition:border-color .18s;
+}
+.pill:hover{border-color:var(--a1);color:var(--tx)}
+.pill select{
+  background:transparent;border:none;
+  color:inherit;font-family:inherit;font-size:11px;
+  cursor:pointer;outline:none;
+}
+.pill select option{background:var(--s2)}
+
+/* ── CONTENT AREA ── */
+.content{
+  height:calc(100vh - 52px);
+  overflow:hidden;
+  padding:14px 18px;
+}
+
+/* ── PAGE SECTIONS ── */
+.pg{display:none;height:100%}
+.pg.on{display:grid}
+
+/* OVERVIEW layout: 3 rows */
+#pg-overview{
+  grid-template-rows:80px 1fr 1fr;
+  gap:10px;
+}
+
+/* PRODUCTS layout */
+#pg-products{
+  grid-template-rows:1fr 1fr;
+  gap:10px;
+}
+
+/* CUSTOMERS layout */
+#pg-customers{
+  grid-template-rows:70px 1fr 1fr;
+  gap:10px;
+}
+
+/* PROFIT layout */
+#pg-profit{
+  grid-template-rows:70px 1fr 1fr;
+  gap:10px;
+}
+
+/* ── ROWS ── */
+.row{display:grid;gap:10px}
+.r2{grid-template-columns:1fr 1fr}
+.r3{grid-template-columns:1fr 1fr 1fr}
+.r4{grid-template-columns:repeat(4,1fr)}
+.r6{grid-template-columns:repeat(6,1fr)}
+.r65{grid-template-columns:1.7fr 1fr}
+.r35{grid-template-columns:1fr 1.7fr}
+.r532{grid-template-columns:1.8fr 1fr 1fr}
+
+/* ── CARD ── */
+.card{
+  background:var(--s1);
+  border:1px solid var(--b);
+  border-radius:10px;
+  padding:12px 14px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:border-color .18s;
+  min-height:0;
+}
+.card:hover{border-color:rgba(255,255,255,0.12)}
+
+/* KPI CARD */
+.kpi{
+  position:relative;
+  padding:12px 14px;
+}
+.kpi::after{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  border-radius:10px 10px 0 0;
+}
+.kpi.c1::after{background:var(--a1)}
+.kpi.c2::after{background:var(--a2)}
+.kpi.c3::after{background:var(--a3)}
+.kpi.c4::after{background:var(--a4)}
+.kpi.c5::after{background:var(--a5)}
+.kpi.c6::after{background:#ff4081}
+
+.kpi-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px}
+.kpi-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px;letter-spacing:.5px;line-height:1;margin-bottom:4px;
+}
+.kpi-sub{font-size:10px;display:flex;align-items:center;gap:3px}
+.up{color:var(--a4)}.dn{color:#ff5252}
+.kpi-ico{
+  position:absolute;right:12px;top:12px;
+  font-size:18px;opacity:.12;
+}
+
+/* CHART HEADER */
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;flex-shrink:0}
+.ct{font-size:12px;font-weight:600;margin-bottom:1px}
+.cs{font-size:10px;color:var(--mu)}
+.badge{
+  font-size:9px;font-family:'DM Mono',monospace;
+  border-radius:4px;padding:2px 7px;flex-shrink:0;
+}
+.b1{background:rgba(0,229,255,0.1);color:var(--a1);border:1px solid rgba(0,229,255,0.2)}
+.b2{background:rgba(255,87,34,0.1);color:var(--a2);border:1px solid rgba(255,87,34,0.2)}
+.b3{background:rgba(124,77,255,0.1);color:#b388ff;border:1px solid rgba(124,77,255,0.2)}
+.b4{background:rgba(0,230,118,0.1);color:var(--a4);border:1px solid rgba(0,230,118,0.2)}
+.b5{background:rgba(255,234,0,0.1);color:var(--a5);border:1px solid rgba(255,234,0,0.2)}
+
+/* canvas fills remaining space */
+.chart-wrap{flex:1;min-height:0;position:relative}
+.chart-wrap canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+
+/* PROGRESS BARS */
+.prog-list{display:flex;flex-direction:column;gap:8px;flex:1;justify-content:center}
+.prog-item{}
+.prog-row{display:flex;justify-content:space-between;margin-bottom:3px;font-size:10px}
+.prog-row span:last-child{color:var(--mu);font-family:'DM Mono',monospace}
+.prog-bg{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width 1.2s ease}
+
+/* RFM MINI CARDS */
+.rfm-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.rfm-mini{
+  padding:8px 10px;border-radius:7px;
+  border:1px solid var(--b);background:rgba(255,255,255,0.02);
+}
+.rfm-t{font-size:10px;font-weight:600;margin-bottom:2px}
+.rfm-n{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1}
+.rfm-d{font-size:9px;color:var(--mu);margin-top:1px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{
+  text-align:left;padding:6px 8px;
+  color:var(--mu);font-weight:500;font-size:9px;
+  text-transform:uppercase;letter-spacing:1px;
+  border-bottom:1px solid var(--b);
+}
+.tbl td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--tx)}
+.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl-wrap{flex:1;overflow-y:auto;min-height:0}
+.tbl-wrap::-webkit-scrollbar{width:3px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+
+.rk{
+  width:18px;height:18px;border-radius:4px;
+  background:rgba(255,255,255,0.05);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;font-family:'DM Mono',monospace;
+}
+.rk.g{background:rgba(255,234,0,0.15);color:var(--a5)}
+.rk.s{background:rgba(180,180,180,0.15);color:#bbb}
+.rk.b{background:rgba(180,100,20,0.2);color:#cd7f32}
+
+.tag{font-size:9px;padding:1px 6px;border-radius:3px;font-family:'DM Mono',monospace}
+.t1{background:rgba(0,229,255,0.1);color:var(--a1)}
+.t2{background:rgba(255,87,34,0.1);color:var(--a2)}
+.t3{background:rgba(124,77,255,0.1);color:#b388ff}
+.t4{background:rgba(0,230,118,0.1);color:var(--a4)}
+.t5{background:rgba(255,234,0,0.1);color:var(--a5)}
+
+/* GAUGE */
+.gauge-ctr{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:4px}
+.gauge-val{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:1px;color:var(--a4);line-height:1}
+.gauge-lbl{font-size:10px;color:var(--mu)}
+
+/* scrollbar global */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-name">RetailIQ</div>
+    <div class="logo-tag">Analytics Platform</div>
+  </div>
+
+  <div class="nav-section">Dashboards</div>
+  <div class="nav-btn on" onclick="go('overview',this)"><div class="nav-dot"></div>Sales Overview</div>
+  <div class="nav-btn" onclick="go('products',this)"><div class="nav-dot"></div>Product Performance</div>
+  <div class="nav-btn" onclick="go('customers',this)"><div class="nav-dot"></div>Customer Segments</div>
+  <div class="nav-btn" onclick="go('profit',this)"><div class="nav-dot"></div>Profit Analysis</div>
+
+  <div class="nav-section" style="margin-top:12px">KPIs</div>
+  <div class="nav-btn" onclick="go('overview',this)"><div class="nav-dot"></div>YoY Growth</div>
+  <div class="nav-btn" onclick="go('customers',this)"><div class="nav-dot"></div>CLV Report</div>
+  <div class="nav-btn" onclick="go('customers',this)"><div class="nav-dot"></div>RFM Segments</div>
+
+  <div class="sidebar-bot">
+    <div class="av-wrap">
+      <div class="av">AK</div>
+      <div>
+        <div class="av-name">Ajay Kodari</div>
+        <div class="av-role">Data Analyst</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="page-label" id="page-label">SALES OVERVIEW</div>
+      <div class="live"><div class="live-d"></div>LIVE</div>
+    </div>
+    <div class="tb-right">
+      <div class="pill">📅
+        <select onchange="filterAnim()">
+          <option>All Years</option>
+          <option>2022</option><option>2023</option><option>2024</option>
+        </select>
+      </div>
+      <div class="pill">🗺️
+        <select onchange="filterAnim()">
+          <option>All Regions</option>
+          <option>North</option><option>South</option><option>West</option>
+        </select>
+      </div>
+      <div class="pill">🏷️
+        <select onchange="filterAnim()">
+          <option>All Segments</option>
+          <option>Consumer</option><option>Corporate</option><option>Home Office</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="pg on" id="pg-overview">
+
+      <!-- ROW 1: KPIs -->
+      <div class="row r6">
+        <div class="card kpi c1"><div class="kpi-ico">💰</div><div class="kpi-lbl">Total Revenue</div><div class="kpi-val">₹42.8L</div><div class="kpi-sub up">▲ 18.4% YoY</div></div>
+        <div class="card kpi c2"><div class="kpi-ico">📦</div><div class="kpi-lbl">Total Orders</div><div class="kpi-val">100</div><div class="kpi-sub up">▲ 22.1% YoY</div></div>
+        <div class="card kpi c3"><div class="kpi-ico">👥</div><div class="kpi-lbl">Customers</div><div class="kpi-val">50</div><div class="kpi-sub up">▲ 12 new 2024</div></div>
+        <div class="card kpi c4"><div class="kpi-ico">📈</div><div class="kpi-lbl">Avg Order Value</div><div class="kpi-val">₹42.8K</div><div class="kpi-sub up">▲ 5.2% YoY</div></div>
+        <div class="card kpi c5"><div class="kpi-ico">💎</div><div class="kpi-lbl">Profit Margin</div><div class="kpi-val">31.4%</div><div class="kpi-sub up">Target 30% ✓</div></div>
+        <div class="card kpi c6"><div class="kpi-ico">↩️</div><div class="kpi-lbl">Return Rate</div><div class="kpi-val">8.0%</div><div class="kpi-sub dn">▼ 1.2pp improved</div></div>
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row r65">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Monthly Revenue Trend</div><div class="cs">2022 vs 2023 vs 2024 YoY comparison</div></div><div class="badge b1">YoY</div></div>
+          <div class="chart-wrap"><canvas id="c-revenue"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Revenue by Region</div><div class="cs">Geographic split</div></div><div class="badge b2">Regional</div></div>
+          <div class="chart-wrap"><canvas id="c-region"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ROW 3 -->
+      <div class="row r532">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Revenue by Category</div><div class="cs">6 product families</div></div><div class="badge b3">Categories</div></div>
+          <div class="chart-wrap"><canvas id="c-cat"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Segment Split</div><div class="cs">Consumer · Corp · Home</div></div></div>
+          <div class="chart-wrap"><canvas id="c-seg"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Ship Mode</div><div class="cs">Delivery preference</div></div></div>
+          <div class="chart-wrap"><canvas id="c-ship"></canvas></div>
+        </div>
+      </div>
+
+    </div><!-- /overview -->
+
+
+    <!-- ══ PRODUCTS ══ -->
+    <div class="pg" id="pg-products">
+
+      <!-- ROW 1 -->
+      <div class="row r65">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Top 10 Products by Revenue</div><div class="cs">Revenue vs Profit comparison</div></div><div class="badge b1">Revenue Rank</div></div>
+          <div class="chart-wrap"><canvas id="c-prods"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Category Revenue Share</div><div class="cs">% of total revenue</div></div><div class="badge b3">Share</div></div>
+          <div class="prog-list">
+            <div class="prog-item"><div class="prog-row"><span>Electronics</span><span>₹18.9L · 44.2%</span></div><div class="prog-bg"><div class="prog-fill" style="width:44.2%;background:var(--a1)"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span>Furniture</span><span>₹9.8L · 22.9%</span></div><div class="prog-bg"><div class="prog-fill" style="width:22.9%;background:var(--a3)"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span>Clothing</span><span>₹6.2L · 14.5%</span></div><div class="prog-bg"><div class="prog-fill" style="width:14.5%;background:var(--a2)"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span>Home &amp; Kitchen</span><span>₹4.8L · 11.2%</span></div><div class="prog-bg"><div class="prog-fill" style="width:11.2%;background:var(--a5)"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span>Groceries</span><span>₹2.4L · 5.6%</span></div><div class="prog-bg"><div class="prog-fill" style="width:5.6%;background:var(--a4)"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span>Books</span><span>₹0.7L · 1.6%</span></div><div class="prog-bg"><div class="prog-fill" style="width:1.6%;background:#ff4081"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row r2">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Profit Margin % by Category</div><div class="cs">Gross margin performance</div></div><div class="badge b4">Margin %</div></div>
+          <div class="chart-wrap"><canvas id="c-margin"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Product Performance Table</div><div class="cs">Top 10 SKUs ranked by revenue</div></div><div class="badge b5">Table</div></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units</th><th>Revenue</th><th>Margin</th></tr></thead>
+              <tbody id="prod-tbl"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /products -->
+
+
+    <!-- ══ CUSTOMERS ══ -->
+    <div class="pg" id="pg-customers">
+
+      <!-- KPIs -->
+      <div class="row r4">
+        <div class="card kpi c1"><div class="kpi-lbl">Avg CLV</div><div class="kpi-val">₹85.6K</div><div class="kpi-sub up">▲ 12% YoY</div></div>
+        <div class="card kpi c2"><div class="kpi-lbl">Top CLV</div><div class="kpi-val">₹2.05L</div><div class="kpi-sub" style="color:var(--mu)">Aarav Sharma</div></div>
+        <div class="card kpi c4"><div class="kpi-lbl">Champions</div><div class="kpi-val">8</div><div class="kpi-sub up">▲ 3 new customers</div></div>
+        <div class="card kpi c6"><div class="kpi-lbl">At Risk</div><div class="kpi-val">11</div><div class="kpi-sub dn">Needs re-engagement</div></div>
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row r2">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Top 10 Customers by CLV</div><div class="cs">Customer Lifetime Value ranking</div></div><div class="badge b1">CLV</div></div>
+          <div class="chart-wrap"><canvas id="c-clv"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">RFM Segmentation</div><div class="cs">Recency · Frequency · Monetary</div></div><div class="badge b3">RFM</div></div>
+          <div class="chart-wrap" style="flex:0 0 100px"><canvas id="c-rfm"></canvas></div>
+          <div class="rfm-row">
+            <div class="rfm-mini" style="border-color:rgba(0,229,255,0.25)"><div class="rfm-t" style="color:var(--a1)">🏆 Champions</div><div class="rfm-n">8</div><div class="rfm-d">High R+F+M</div></div>
+            <div class="rfm-mini" style="border-color:rgba(0,230,118,0.25)"><div class="rfm-t" style="color:var(--a4)">💚 Loyal</div><div class="rfm-n">12</div><div class="rfm-d">Consistent buyers</div></div>
+            <div class="rfm-mini" style="border-color:rgba(255,234,0,0.25)"><div class="rfm-t" style="color:var(--a5)">⭐ Potential</div><div class="rfm-n">14</div><div class="rfm-d">Growing engagement</div></div>
+            <div class="rfm-mini" style="border-color:rgba(255,82,82,0.25)"><div class="rfm-t" style="color:#ff5252">⚠️ At Risk</div><div class="rfm-n">16</div><div class="rfm-d">At risk + Lost</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3 -->
+      <div class="row r3">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Revenue by Age Group</div></div></div>
+          <div class="chart-wrap"><canvas id="c-age"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Gender Distribution</div></div></div>
+          <div class="chart-wrap"><canvas id="c-gender"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Revenue by Segment</div></div></div>
+          <div class="chart-wrap"><canvas id="c-segrev"></canvas></div>
+        </div>
+      </div>
+
+    </div><!-- /customers -->
+
+
+    <!-- ══ PROFIT ══ -->
+    <div class="pg" id="pg-profit">
+
+      <!-- KPIs -->
+      <div class="row r3">
+        <div class="card kpi c4"><div class="kpi-lbl">Total Profit</div><div class="kpi-val">₹13.4L</div><div class="kpi-sub up">▲ 21.3% YoY</div></div>
+        <div class="card kpi c1"><div class="kpi-lbl">Avg Margin %</div><div class="kpi-val">31.4%</div><div class="kpi-sub up">Target 30% ✓</div></div>
+        <div class="card kpi c5"><div class="kpi-lbl">YoY Profit Growth</div><div class="kpi-val">+21.3%</div><div class="kpi-sub up">Best since 2022</div></div>
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row r2">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Monthly Revenue vs Profit Margin</div><div class="cs">Bar = Revenue · Line = Margin %</div></div><div class="badge b4">Combo</div></div>
+          <div class="chart-wrap"><canvas id="c-combo"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">YoY Annual Comparison</div><div class="cs">Revenue vs Profit 2022–2024</div></div><div class="badge b1">YoY</div></div>
+          <div class="chart-wrap"><canvas id="c-yoy"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ROW 3 -->
+      <div class="row r2">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Profit by Category</div><div class="cs">Gross profit per product family</div></div></div>
+          <div class="chart-wrap"><canvas id="c-profcat"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Profit Margin Gauge</div><div class="cs">Overall business health · Target 30%</div></div></div>
+          <div class="gauge-ctr">
+            <div class="chart-wrap" style="flex:0 0 90px;width:100%"><canvas id="c-gauge"></canvas></div>
+            <div class="gauge-val">31.4%</div>
+            <div class="gauge-lbl">Overall Profit Margin · ✓ Above Target</div>
+            <div class="prog-list" style="width:100%;margin-top:8px">
+              <div class="prog-item"><div class="prog-row"><span>Clothing</span><span>40.2%</span></div><div class="prog-bg"><div class="prog-fill" style="width:40.2%;background:var(--a2)"></div></div></div>
+              <div class="prog-item"><div class="prog-row"><span>Furniture</span><span>36.1%</span></div><div class="prog-bg"><div class="prog-fill" style="width:36.1%;background:var(--a3)"></div></div></div>
+              <div class="prog-item"><div class="prog-row"><span>Electronics</span><span>30.8%</span></div><div class="prog-bg"><div class="prog-fill" style="width:30.8%;background:var(--a1)"></div></div></div>
+              <div class="prog-item"><div class="prog-row"><span>Home &amp; Kitchen</span><span>29.5%</span></div><div class="prog-bg"><div class="prog-fill" style="width:29.5%;background:var(--a5)"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /profit -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ── DEFAULTS ──
+Chart.defaults.color='#4a5568';
+Chart.defaults.font.family="'DM Sans',sans-serif";
+Chart.defaults.font.size=10;
+const TT={backgroundColor:'#161b27',titleColor:'#dde6f0',bodyColor:'#4a5568',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:8,cornerRadius:6};
+const GRID={color:'rgba(255,255,255,0.04)'};
+const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TT}};
+
+const C=['#00e5ff','#ff5722','#7c4dff','#00e676','#ffea00','#ff4081','#40c4ff','#69f0ae'];
+
+// ── DATA ──
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const R22=[65,160,160,137,141,79,227,148,231,257,151,282];
+const R23=[175,131,259,205,204,200,285,276,261,185,282,253];
+const R24=[173,188,218,205,179,266,305,205,278,192,0,0];
+const P22=R22.map(v=>+(v*.25).toFixed(1));
+const P23=R23.map(v=>+(v*.25).toFixed(1));
+
+// ── OVERVIEW CHARTS ──
+new Chart(document.getElementById('c-revenue'),{type:'line',data:{labels:MO,datasets:[
+  {label:'2022',data:R22,borderColor:'rgba(124,77,255,0.7)',backgroundColor:'rgba(124,77,255,0.04)',tension:.4,fill:true,pointRadius:2,borderWidth:1.5},
+  {label:'2023',data:R23,borderColor:'rgba(0,229,255,0.8)',backgroundColor:'rgba(0,229,255,0.05)',tension:.4,fill:true,pointRadius:2,borderWidth:1.5},
+  {label:'2024',data:R24,borderColor:'rgba(255,87,34,0.8)',backgroundColor:'rgba(255,87,34,0.04)',tension:.4,fill:true,pointRadius:2,borderWidth:1.5,borderDash:[4,3]},
+]},options:{...base,plugins:{...base.plugins,legend:{display:true,position:'top',labels:{color:'#4a5568',boxWidth:8,padding:10,font:{size:10}}}},scales:{x:{grid:GRID,ticks:{color:'#4a5568'}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'K'}}}}});
+
+new Chart(document.getElementById('c-region'),{type:'doughnut',data:{labels:['North','South','West'],datasets:[{data:[38,41.6,20.4],backgroundColor:['rgba(0,229,255,0.7)','rgba(124,77,255,0.7)','rgba(255,87,34,0.7)'],borderWidth:0,hoverOffset:6}]},options:{...base,cutout:'72%',plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#4a5568',boxWidth:8,padding:10}}}}});
+
+new Chart(document.getElementById('c-cat'),{type:'bar',data:{labels:['Electronics','Furniture','Clothing','Home','Groceries','Books'],datasets:[{data:[18.9,9.8,6.2,4.8,2.4,0.7],backgroundColor:C.slice(0,6).map(c=>c+'bb'),borderRadius:5,borderSkipped:false}]},options:{...base,indexAxis:'y',scales:{x:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'L'}},y:{grid:{display:false},ticks:{color:'#4a5568',font:{size:10}}}}}});
+
+new Chart(document.getElementById('c-seg'),{type:'doughnut',data:{labels:['Consumer','Corporate','Home Office'],datasets:[{data:[46,36,18],backgroundColor:['rgba(0,230,118,.7)','rgba(0,229,255,.7)','rgba(255,87,34,.7)'],borderWidth:0}]},options:{...base,cutout:'65%',plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#4a5568',boxWidth:7,padding:8}}}}});
+
+new Chart(document.getElementById('c-ship'),{type:'polarArea',data:{labels:['Standard','Second','First','Same Day'],datasets:[{data:[52,21,18,9],backgroundColor:['rgba(0,229,255,.5)','rgba(124,77,255,.5)','rgba(255,87,34,.5)','rgba(0,230,118,.5)'],borderWidth:0}]},options:{...base,plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#4a5568',boxWidth:7,padding:8}}},scales:{r:{grid:GRID,ticks:{display:false}}}}});
+
+// ── PRODUCT CHARTS ──
+const pnames=['iPhone 14','Galaxy S23','Dell Laptop','Canon DSLR','Sony Headphones','LG Smart TV','Sofa Set','Work Desk','Air Purifier','Mixer Grinder'];
+const prev=[540,431,313,198,186,158,113,72,72,28];
+const pprof=[150,129,94,59,69,47,51,28,28,10];
+new Chart(document.getElementById('c-prods'),{type:'bar',data:{labels:pnames,datasets:[{label:'Revenue (₹K)',data:prev,backgroundColor:'rgba(0,229,255,.6)',borderRadius:4,borderSkipped:false},{label:'Profit (₹K)',data:pprof,backgroundColor:'rgba(0,230,118,.6)',borderRadius:4,borderSkipped:false}]},options:{...base,plugins:{...base.plugins,legend:{display:true,position:'top',labels:{color:'#4a5568',boxWidth:8,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#4a5568',maxRotation:35,font:{size:9}}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'K'}}}}});
+
+new Chart(document.getElementById('c-margin'),{type:'bar',data:{labels:['Electronics','Furniture','Clothing','Home','Groceries','Books'],datasets:[{data:[30.8,36.1,40.2,29.5,27.4,35.8],backgroundColor:C.slice(0,6).map(c=>c+'aa'),borderRadius:6,borderSkipped:false}]},options:{...base,scales:{x:{grid:{display:false},ticks:{color:'#4a5568',font:{size:9}}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>v+'%'},suggestedMax:50}}}});
+
+// Product Table
+const ptdata=[
+  ['iPhone 14','Electronics',6,'₹540K','27.8%'],
+  ['Galaxy S23','Electronics',7,'₹431K','30.0%'],
+  ['Dell Laptop','Electronics',6,'₹313K','30.0%'],
+  ['Canon DSLR','Electronics',4,'₹198K','30.0%'],
+  ['Sony Headphones','Electronics',7,'₹186K','37.3%'],
+  ['LG Smart TV','Electronics',5,'₹158K','30.0%'],
+  ['Sofa Set','Furniture',3,'₹113K','45.0%'],
+  ['Work Desk','Furniture',4,'₹72K','38.9%'],
+  ['Air Purifier','Home',4,'₹72K','38.9%'],
+  ['Mixer Grinder','Home',3,'₹28K','35.0%'],
+];
+const tb=document.getElementById('prod-tbl');
+const tc=['t1','t1','t1','t1','t1','t1','t3','t3','t5','t5'];
+ptdata.forEach((r,i)=>{
+  const rk=i===0?'g':i===1?'s':i===2?'b':'';
+  tb.innerHTML+=`<tr><td><span class="rk ${rk}">${i+1}</span></td><td style="font-weight:500">${r[0]}</td><td><span class="tag ${tc[i]}">${r[1]}</span></td><td style="font-family:'DM Mono',monospace">${r[2]}</td><td style="font-family:'DM Mono',monospace;color:var(--a1)">${r[3]}</td><td style="font-family:'DM Mono',monospace;color:var(--a4)">${r[4]}</td></tr>`;
+});
+
+// ── CUSTOMER CHARTS ──
+const cnames=['Aarav S','Kiran K','Vikram J','Priya P','Rohan M','Meera I','Sneha R','Rahul G','Suresh R','Divya N'];
+const cvals=[205,174,160,128,118,95,89,83,75,68];
+new Chart(document.getElementById('c-clv'),{type:'bar',data:{labels:cnames,datasets:[{data:cvals,backgroundColor:cvals.map((_,i)=>i===0?'rgba(255,234,0,.8)':i===1?'rgba(180,180,180,.6)':i===2?'rgba(180,100,20,.7)':'rgba(0,229,255,.5)'),borderRadius:6,borderSkipped:false}]},options:{...base,scales:{x:{grid:{display:false},ticks:{color:'#4a5568',font:{size:9}}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'K'}}}}});
+
+new Chart(document.getElementById('c-rfm'),{type:'doughnut',data:{labels:['Champions','Loyal','Potential','At Risk','Lost'],datasets:[{data:[8,12,14,11,5],backgroundColor:['rgba(0,229,255,.7)','rgba(0,230,118,.7)','rgba(255,234,0,.7)','rgba(255,82,82,.7)','rgba(124,77,255,.7)'],borderWidth:0,hoverOffset:4}]},options:{...base,cutout:'60%'}});
+
+new Chart(document.getElementById('c-age'),{type:'bar',data:{labels:['18–25','26–35','36–45','46–60','60+'],datasets:[{data:[5.2,12.8,14.2,7.6,3.0],backgroundColor:'rgba(124,77,255,.7)',borderRadius:6,borderSkipped:false}]},options:{...base,scales:{x:{grid:{display:false},ticks:{color:'#4a5568'}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'L'}}}}});
+
+new Chart(document.getElementById('c-gender'),{type:'doughnut',data:{labels:['Male','Female','Other'],datasets:[{data:[54,44,2],backgroundColor:['rgba(0,229,255,.7)','rgba(255,64,129,.7)','rgba(255,234,0,.7)'],borderWidth:0}]},options:{...base,cutout:'65%',plugins:{...base.plugins,legend:{display:true,position:'bottom',labels:{color:'#4a5568',boxWidth:7,padding:8}}}}});
+
+new Chart(document.getElementById('c-segrev'),{type:'bar',data:{labels:['Consumer','Corporate','Home Office'],datasets:[{data:[19.7,15.4,7.7],backgroundColor:['rgba(0,230,118,.7)','rgba(0,229,255,.7)','rgba(255,87,34,.7)'],borderRadius:8,borderSkipped:false}]},options:{...base,scales:{x:{grid:{display:false},ticks:{color:'#4a5568'}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'L'}}}}});
+
+// ── PROFIT CHARTS ──
+new Chart(document.getElementById('c-combo'),{type:'bar',data:{labels:MO,datasets:[
+  {type:'bar',label:'Revenue (₹K)',data:R23,backgroundColor:'rgba(0,229,255,.2)',borderRadius:3,yAxisID:'y'},
+  {type:'line',label:'Margin %',data:MO.map(()=>25),borderColor:'rgba(255,87,34,.9)',backgroundColor:'transparent',tension:.4,pointRadius:2,yAxisID:'y1',borderWidth:2},
+]},options:{...base,plugins:{...base.plugins,legend:{display:true,position:'top',labels:{color:'#4a5568',boxWidth:8,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#4a5568'}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'K'},position:'left'},y1:{grid:{display:false},ticks:{color:'#4a5568',callback:v=>v+'%'},position:'right',suggestedMin:20,suggestedMax:35}}}});
+
+new Chart(document.getElementById('c-yoy'),{type:'bar',data:{labels:['2022','2023','2024 YTD'],datasets:[
+  {label:'Revenue (₹L)',data:[24.2,26.1,42.8],backgroundColor:'rgba(0,229,255,.6)',borderRadius:8,borderSkipped:false},
+  {label:'Profit (₹L)',data:[5.6,6.5,13.4],backgroundColor:'rgba(0,230,118,.6)',borderRadius:8,borderSkipped:false},
+]},options:{...base,plugins:{...base.plugins,legend:{display:true,position:'top',labels:{color:'#4a5568',boxWidth:8,padding:10}}},scales:{x:{grid:{display:false},ticks:{color:'#4a5568'}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'L'}}}}});
+
+new Chart(document.getElementById('c-profcat'),{type:'bar',data:{labels:['Electronics','Furniture','Clothing','Home','Groceries','Books'],datasets:[{data:[5.82,3.54,2.49,1.42,0.66,0.25],backgroundColor:C.slice(0,6).map(c=>c+'99'),borderRadius:8,borderSkipped:false}]},options:{...base,scales:{x:{grid:{display:false},ticks:{color:'#4a5568',font:{size:9}}},y:{grid:GRID,ticks:{color:'#4a5568',callback:v=>'₹'+v+'L'}}}}});
+
+new Chart(document.getElementById('c-gauge'),{type:'doughnut',data:{datasets:[{data:[31.4,68.6],backgroundColor:['rgba(0,230,118,.8)','rgba(255,255,255,0.04)'],borderWidth:0,circumference:180,rotation:270}]},options:{...base,cutout:'75%',plugins:{...base.plugins,legend:{display:false}}}});
+
+// ── NAV ──
+const labels={'overview':'SALES OVERVIEW','products':'PRODUCT PERFORMANCE','customers':'CUSTOMER SEGMENTS','profit':'PROFIT ANALYSIS'};
+function go(name,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  el.classList.add('on');
+  document.getElementById('page-label').textContent=labels[name];
+}
+
+function filterAnim(){
+  const els=document.querySelectorAll('.card');
+  els.forEach(e=>{e.style.opacity='.5';e.style.transition='opacity .3s'});
+  setTimeout(()=>els.forEach(e=>{e.style.opacity='1'}),350);
+}
+</script>
+</body>
+</html>
