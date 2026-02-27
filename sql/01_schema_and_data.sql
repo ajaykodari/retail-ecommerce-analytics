@@ -1,0 +1,398 @@
+-- ============================================================
+-- RETAIL / E-COMMERCE ANALYTICS DASHBOARD
+-- File 1: Schema Creation + Sample Data
+-- Author: Ajay Kodari
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS retail_analytics;
+USE retail_analytics;
+
+-- ============================================================
+-- TABLE 1: CUSTOMERS
+-- ============================================================
+DROP TABLE IF EXISTS customers;
+CREATE TABLE customers (
+    customer_id     INT PRIMARY KEY AUTO_INCREMENT,
+    customer_name   VARCHAR(100) NOT NULL,
+    email           VARCHAR(150),
+    gender          ENUM('Male', 'Female', 'Other'),
+    age             INT,
+    city            VARCHAR(100),
+    state           VARCHAR(100),
+    country         VARCHAR(100) DEFAULT 'India',
+    segment         ENUM('Consumer', 'Corporate', 'Home Office'),
+    join_date       DATE
+);
+
+-- ============================================================
+-- TABLE 2: PRODUCTS
+-- ============================================================
+DROP TABLE IF EXISTS products;
+CREATE TABLE products (
+    product_id      VARCHAR(20) PRIMARY KEY,
+    product_name    VARCHAR(200) NOT NULL,
+    category        VARCHAR(100),
+    sub_category    VARCHAR(100),
+    brand           VARCHAR(100),
+    cost_price      DECIMAL(10,2),
+    selling_price   DECIMAL(10,2)
+);
+
+-- ============================================================
+-- TABLE 3: ORDERS
+-- ============================================================
+DROP TABLE IF EXISTS orders;
+CREATE TABLE orders (
+    order_id        VARCHAR(20) PRIMARY KEY,
+    customer_id     INT,
+    order_date      DATE,
+    ship_date       DATE,
+    ship_mode       ENUM('Standard Class', 'Second Class', 'First Class', 'Same Day'),
+    region          VARCHAR(50),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+-- ============================================================
+-- TABLE 4: ORDER ITEMS
+-- ============================================================
+DROP TABLE IF EXISTS order_items;
+CREATE TABLE order_items (
+    item_id         INT PRIMARY KEY AUTO_INCREMENT,
+    order_id        VARCHAR(20),
+    product_id      VARCHAR(20),
+    quantity        INT,
+    unit_price      DECIMAL(10,2),
+    discount        DECIMAL(4,2) DEFAULT 0.00,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+-- ============================================================
+-- TABLE 5: RETURNS
+-- ============================================================
+DROP TABLE IF EXISTS returns;
+CREATE TABLE returns (
+    return_id       INT PRIMARY KEY AUTO_INCREMENT,
+    order_id        VARCHAR(20),
+    return_date     DATE,
+    reason          VARCHAR(200),
+    FOREIGN KEY (order_id) REFERENCES orders(order_id)
+);
+
+-- ============================================================
+-- INSERT SAMPLE DATA: CUSTOMERS (50 records)
+-- ============================================================
+INSERT INTO customers (customer_name, email, gender, age, city, state, country, segment, join_date) VALUES
+('Aarav Sharma',       'aarav.sharma@gmail.com',     'Male',   32, 'Mumbai',     'Maharashtra',   'India', 'Consumer',    '2021-03-15'),
+('Priya Patel',        'priya.patel@gmail.com',       'Female', 27, 'Ahmedabad',  'Gujarat',       'India', 'Corporate',   '2021-05-20'),
+('Rohan Mehta',        'rohan.mehta@gmail.com',       'Male',   45, 'Delhi',      'Delhi',         'India', 'Home Office', '2021-01-10'),
+('Sneha Reddy',        'sneha.reddy@gmail.com',       'Female', 29, 'Hyderabad',  'Telangana',     'India', 'Consumer',    '2021-07-08'),
+('Kiran Kumar',        'kiran.kumar@gmail.com',       'Male',   38, 'Bangalore',  'Karnataka',     'India', 'Corporate',   '2021-02-14'),
+('Ananya Singh',       'ananya.singh@gmail.com',      'Female', 24, 'Pune',       'Maharashtra',   'India', 'Consumer',    '2022-01-05'),
+('Vikram Joshi',       'vikram.joshi@gmail.com',      'Male',   52, 'Chennai',    'Tamil Nadu',    'India', 'Corporate',   '2021-09-22'),
+('Divya Nair',         'divya.nair@gmail.com',        'Female', 33, 'Kochi',      'Kerala',        'India', 'Home Office', '2022-03-18'),
+('Rahul Gupta',        'rahul.gupta@gmail.com',       'Male',   41, 'Jaipur',     'Rajasthan',     'India', 'Consumer',    '2021-11-30'),
+('Meera Iyer',         'meera.iyer@gmail.com',        'Female', 36, 'Coimbatore', 'Tamil Nadu',    'India', 'Corporate',   '2022-05-12'),
+('Arjun Verma',        'arjun.verma@gmail.com',       'Male',   28, 'Lucknow',    'Uttar Pradesh', 'India', 'Consumer',    '2022-06-25'),
+('Pooja Desai',        'pooja.desai@gmail.com',       'Female', 31, 'Surat',      'Gujarat',       'India', 'Home Office', '2021-08-14'),
+('Suresh Rao',         'suresh.rao@gmail.com',        'Male',   47, 'Vizag',      'Andhra Pradesh','India', 'Corporate',   '2021-04-07'),
+('Lakshmi Pillai',     'lakshmi.pillai@gmail.com',    'Female', 39, 'Trivandrum', 'Kerala',        'India', 'Consumer',    '2022-02-28'),
+('Aditya Banerjee',    'aditya.banerjee@gmail.com',   'Male',   26, 'Kolkata',    'West Bengal',   'India', 'Consumer',    '2022-07-11'),
+('Swati Kulkarni',     'swati.kulkarni@gmail.com',    'Female', 34, 'Nagpur',     'Maharashtra',   'India', 'Corporate',   '2021-12-03'),
+('Nikhil Tiwari',      'nikhil.tiwari@gmail.com',     'Male',   43, 'Bhopal',     'Madhya Pradesh','India', 'Home Office', '2022-04-19'),
+('Ritu Saxena',        'ritu.saxena@gmail.com',       'Female', 30, 'Agra',       'Uttar Pradesh', 'India', 'Consumer',    '2022-08-06'),
+('Deepak Malhotra',    'deepak.malhotra@gmail.com',   'Male',   55, 'Chandigarh', 'Punjab',        'India', 'Corporate',   '2021-06-17'),
+('Kavya Krishnan',     'kavya.krishnan@gmail.com',    'Female', 22, 'Mysore',     'Karnataka',     'India', 'Consumer',    '2022-09-23'),
+('Sanjay Chopra',      'sanjay.chopra@gmail.com',     'Male',   48, 'Amritsar',   'Punjab',        'India', 'Corporate',   '2021-10-05'),
+('Nisha Agarwal',      'nisha.agarwal@gmail.com',     'Female', 37, 'Indore',     'Madhya Pradesh','India', 'Home Office', '2022-10-14'),
+('Rajesh Pandey',      'rajesh.pandey@gmail.com',     'Male',   50, 'Varanasi',   'Uttar Pradesh', 'India', 'Consumer',    '2021-07-29'),
+('Sunita Bhatt',       'sunita.bhatt@gmail.com',      'Female', 44, 'Dehradun',   'Uttarakhand',   'India', 'Corporate',   '2022-11-08'),
+('Amit Srivastava',    'amit.srivastava@gmail.com',   'Male',   35, 'Allahabad',  'Uttar Pradesh', 'India', 'Consumer',    '2022-12-01'),
+('Geeta Menon',        'geeta.menon@gmail.com',       'Female', 29, 'Thrissur',   'Kerala',        'India', 'Consumer',    '2023-01-15'),
+('Prakash Hegde',      'prakash.hegde@gmail.com',     'Male',   42, 'Mangalore',  'Karnataka',     'India', 'Corporate',   '2023-02-20'),
+('Asha Reddy',         'asha.reddy@gmail.com',        'Female', 26, 'Warangal',   'Telangana',     'India', 'Home Office', '2023-01-07'),
+('Sunil Patil',        'sunil.patil@gmail.com',       'Male',   39, 'Nashik',     'Maharashtra',   'India', 'Consumer',    '2023-03-12'),
+('Rekha Sharma',       'rekha.sharma@gmail.com',      'Female', 33, 'Meerut',     'Uttar Pradesh', 'India', 'Corporate',   '2023-04-25'),
+('Vivek Nambiar',      'vivek.nambiar@gmail.com',     'Male',   46, 'Calicut',    'Kerala',        'India', 'Consumer',    '2023-05-18'),
+('Padma Subramanian',  'padma.subra@gmail.com',       'Female', 38, 'Madurai',    'Tamil Nadu',    'India', 'Corporate',   '2023-06-03'),
+('Harish Chandra',     'harish.chandra@gmail.com',    'Male',   31, 'Patna',      'Bihar',         'India', 'Home Office', '2023-07-09'),
+('Usha Kapoor',        'usha.kapoor@gmail.com',       'Female', 53, 'Faridabad',  'Haryana',       'India', 'Consumer',    '2023-08-22'),
+('Manoj Dubey',        'manoj.dubey@gmail.com',       'Male',   27, 'Gwalior',    'Madhya Pradesh','India', 'Consumer',    '2023-09-14'),
+('Shilpa Naik',        'shilpa.naik@gmail.com',       'Female', 40, 'Panaji',     'Goa',           'India', 'Corporate',   '2023-10-05'),
+('Ramesh Yadav',       'ramesh.yadav@gmail.com',      'Male',   57, 'Jodhpur',    'Rajasthan',     'India', 'Consumer',    '2023-11-17'),
+('Chitra Bose',        'chitra.bose@gmail.com',       'Female', 35, 'Howrah',     'West Bengal',   'India', 'Home Office', '2023-12-28'),
+('Venkat Subramaniam', 'venkat.subra@gmail.com',      'Male',   44, 'Salem',      'Tamil Nadu',    'India', 'Corporate',   '2024-01-10'),
+('Parvati Devi',       'parvati.devi@gmail.com',      'Female', 48, 'Shimla',     'Himachal Pradesh','India','Consumer',   '2024-02-14'),
+('Gaurav Acharya',     'gaurav.acharya@gmail.com',    'Male',   23, 'Bhubaneswar','Odisha',        'India', 'Consumer',    '2024-03-21'),
+('Malathi Rajan',      'malathi.rajan@gmail.com',     'Female', 36, 'Tirupati',   'Andhra Pradesh','India', 'Corporate',   '2024-04-08'),
+('Dinesh Pillai',      'dinesh.pillai@gmail.com',     'Male',   41, 'Palakkad',   'Kerala',        'India', 'Home Office', '2024-05-30'),
+('Jayanthi Iyer',      'jayanthi.iyer@gmail.com',     'Female', 28, 'Ooty',       'Tamil Nadu',    'India', 'Consumer',    '2024-06-16'),
+('Subramaniam K',      'subramaniamk@gmail.com',      'Male',   60, 'Thanjavur',  'Tamil Nadu',    'India', 'Corporate',   '2024-07-02'),
+('Brinda Nair',        'brinda.nair@gmail.com',       'Female', 32, 'Kozhikode',  'Kerala',        'India', 'Consumer',    '2024-08-19'),
+('Prasad Kale',        'prasad.kale@gmail.com',       'Male',   37, 'Kolhapur',   'Maharashtra',   'India', 'Corporate',   '2024-09-11'),
+('Vijayalakshmi S',    'vijayalakshmi@gmail.com',     'Female', 43, 'Erode',      'Tamil Nadu',    'India', 'Home Office', '2024-10-24'),
+('Rajan Menon',        'rajan.menon@gmail.com',       'Male',   29, 'Thrissur',   'Kerala',        'India', 'Consumer',    '2024-11-07'),
+('Kavitha Raj',        'kavitha.raj@gmail.com',       'Female', 34, 'Vellore',    'Tamil Nadu',    'India', 'Corporate',   '2024-12-20');
+
+-- ============================================================
+-- INSERT SAMPLE DATA: PRODUCTS (30 records)
+-- ============================================================
+INSERT INTO products (product_id, product_name, category, sub_category, brand, cost_price, selling_price) VALUES
+('TECH-001', 'Samsung Galaxy S23',          'Electronics',    'Smartphones',    'Samsung',  45000, 65000),
+('TECH-002', 'Apple iPhone 14',             'Electronics',    'Smartphones',    'Apple',    70000, 95000),
+('TECH-003', 'Sony WH-1000XM5 Headphones', 'Electronics',    'Audio',          'Sony',     18000, 28000),
+('TECH-004', 'Dell Inspiron 15 Laptop',     'Electronics',    'Laptops',        'Dell',     40000, 58000),
+('TECH-005', 'HP LaserJet Printer',         'Electronics',    'Printers',       'HP',       8000,  13500),
+('TECH-006', 'LG 43 inch Smart TV',         'Electronics',    'Televisions',    'LG',       22000, 35000),
+('TECH-007', 'Canon EOS DSLR Camera',       'Electronics',    'Cameras',        'Canon',    35000, 52000),
+('TECH-008', 'Mi Smartwatch Pro',           'Electronics',    'Wearables',      'Xiaomi',   5000,  8500),
+('FURN-001', 'Ergonomic Office Chair',      'Furniture',      'Chairs',         'Featherlite', 8000, 14000),
+('FURN-002', 'L-Shaped Work Desk',          'Furniture',      'Desks',          'Godrej',   12000, 20000),
+('FURN-003', 'Bookshelf 5-Tier',            'Furniture',      'Storage',        'Nilkamal', 3500,  6000),
+('FURN-004', 'Sofa Set 3+1+1',              'Furniture',      'Sofas',          'Durian',   25000, 42000),
+('FURN-005', 'Dining Table Set',            'Furniture',      'Dining',         'Hometown', 18000, 30000),
+('FURN-006', 'King Size Bed with Storage',  'Furniture',      'Beds',           'Pepperfry',20000, 35000),
+('CLTH-001', 'Men Formal Shirt Pack (3)',   'Clothing',       'Men Formal',     'Arrow',    1200,  2200),
+('CLTH-002', 'Women Kurtis Set (5)',        'Clothing',       'Women Ethnic',   'Biba',     1800,  3200),
+('CLTH-003', 'Sports Running Shoes',        'Clothing',       'Footwear',       'Nike',     3500,  6000),
+('CLTH-004', 'Winter Jacket Men',           'Clothing',       'Outerwear',      'Allen Solly',2500,4800),
+('CLTH-005', 'Saree Silk Banarasi',         'Clothing',       'Women Ethnic',   'Nalli',    4000,  7500),
+('GROC-001', 'Organic Rice 25kg',           'Groceries',      'Staples',        'Fortune',  1400,  1900),
+('GROC-002', 'Cold Pressed Coconut Oil 5L', 'Groceries',      'Oils',           'Parachute',700,   1100),
+('GROC-003', 'Assorted Dry Fruits 1kg',     'Groceries',      'Snacks',         'Happilo',  600,   950),
+('GROC-004', 'Green Tea 100 Bags',          'Groceries',      'Beverages',      'Tetley',   300,   520),
+('HOME-001', 'Non-Stick Cookware Set',      'Home & Kitchen', 'Cookware',       'Prestige', 2500,  4200),
+('HOME-002', 'Air Purifier HEPA',           'Home & Kitchen', 'Appliances',     'Dyson',    12000, 20000),
+('HOME-003', 'Water Purifier RO+UV',        'Home & Kitchen', 'Appliances',     'Kent',     8000,  14500),
+('HOME-004', 'Bedsheet Set King Size',      'Home & Kitchen', 'Bedding',        'Bombay Dyeing',800,1500),
+('HOME-005', 'Mixer Grinder 750W',          'Home & Kitchen', 'Appliances',     'Bajaj',    2200,  3800),
+('BOOK-001', 'Data Science Handbook',       'Books',          'Technology',     'OReilly',  600,   950),
+('BOOK-002', 'Business Analytics Guide',    'Books',          'Business',       'Wiley',    550,   880);
+
+-- ============================================================
+-- INSERT SAMPLE DATA: ORDERS (100 records across 2022-2024)
+-- ============================================================
+INSERT INTO orders (order_id, customer_id, order_date, ship_date, ship_mode, region) VALUES
+('ORD-2022-001', 1,  '2022-01-05', '2022-01-08', 'Standard Class', 'West'),
+('ORD-2022-002', 5,  '2022-01-12', '2022-01-14', 'First Class',    'South'),
+('ORD-2022-003', 3,  '2022-01-20', '2022-01-22', 'Second Class',   'North'),
+('ORD-2022-004', 7,  '2022-02-03', '2022-02-06', 'Standard Class', 'South'),
+('ORD-2022-005', 2,  '2022-02-14', '2022-02-15', 'Same Day',       'West'),
+('ORD-2022-006', 9,  '2022-02-25', '2022-02-28', 'Standard Class', 'North'),
+('ORD-2022-007', 4,  '2022-03-08', '2022-03-10', 'First Class',    'South'),
+('ORD-2022-008', 13, '2022-03-15', '2022-03-18', 'Standard Class', 'South'),
+('ORD-2022-009', 6,  '2022-03-22', '2022-03-25', 'Second Class',   'West'),
+('ORD-2022-010', 10, '2022-04-01', '2022-04-03', 'Standard Class', 'South'),
+('ORD-2022-011', 14, '2022-04-10', '2022-04-12', 'First Class',    'South'),
+('ORD-2022-012', 1,  '2022-04-18', '2022-04-21', 'Standard Class', 'West'),
+('ORD-2022-013', 16, '2022-05-05', '2022-05-08', 'Second Class',   'West'),
+('ORD-2022-014', 7,  '2022-05-14', '2022-05-16', 'Standard Class', 'South'),
+('ORD-2022-015', 3,  '2022-05-22', '2022-05-25', 'First Class',    'North'),
+('ORD-2022-016', 19, '2022-06-03', '2022-06-06', 'Standard Class', 'North'),
+('ORD-2022-017', 5,  '2022-06-12', '2022-06-14', 'Same Day',       'South'),
+('ORD-2022-018', 11, '2022-06-20', '2022-06-23', 'Standard Class', 'North'),
+('ORD-2022-019', 8,  '2022-07-04', '2022-07-07', 'Second Class',   'South'),
+('ORD-2022-020', 21, '2022-07-15', '2022-07-18', 'Standard Class', 'North'),
+('ORD-2022-021', 4,  '2022-07-25', '2022-07-28', 'First Class',    'South'),
+('ORD-2022-022', 12, '2022-08-05', '2022-08-08', 'Standard Class', 'West'),
+('ORD-2022-023', 2,  '2022-08-14', '2022-08-16', 'Standard Class', 'West'),
+('ORD-2022-024', 15, '2022-08-23', '2022-08-26', 'Second Class',   'South'),
+('ORD-2022-025', 23, '2022-09-04', '2022-09-07', 'Standard Class', 'North'),
+('ORD-2022-026', 6,  '2022-09-13', '2022-09-15', 'First Class',    'West'),
+('ORD-2022-027', 18, '2022-09-22', '2022-09-25', 'Standard Class', 'North'),
+('ORD-2022-028', 10, '2022-10-03', '2022-10-06', 'Standard Class', 'South'),
+('ORD-2022-029', 1,  '2022-10-15', '2022-10-18', 'Same Day',       'West'),
+('ORD-2022-030', 9,  '2022-10-25', '2022-10-28', 'Standard Class', 'North'),
+('ORD-2022-031', 20, '2022-11-05', '2022-11-08', 'Second Class',   'North'),
+('ORD-2022-032', 7,  '2022-11-11', '2022-11-13', 'Standard Class', 'South'),
+('ORD-2022-033', 3,  '2022-11-20', '2022-11-23', 'First Class',    'North'),
+('ORD-2022-034', 25, '2022-12-01', '2022-12-04', 'Standard Class', 'North'),
+('ORD-2022-035', 13, '2022-12-10', '2022-12-12', 'Standard Class', 'South'),
+('ORD-2022-036', 5,  '2022-12-20', '2022-12-22', 'Same Day',       'South'),
+('ORD-2023-001', 14, '2023-01-08', '2023-01-11', 'Standard Class', 'South'),
+('ORD-2023-002', 2,  '2023-01-16', '2023-01-19', 'Second Class',   'West'),
+('ORD-2023-003', 28, '2023-01-25', '2023-01-28', 'Standard Class', 'South'),
+('ORD-2023-004', 6,  '2023-02-05', '2023-02-08', 'First Class',    'West'),
+('ORD-2023-005', 17, '2023-02-14', '2023-02-16', 'Standard Class', 'North'),
+('ORD-2023-006', 4,  '2023-02-22', '2023-02-25', 'Standard Class', 'South'),
+('ORD-2023-007', 1,  '2023-03-04', '2023-03-07', 'Same Day',       'West'),
+('ORD-2023-008', 30, '2023-03-14', '2023-03-17', 'Standard Class', 'North'),
+('ORD-2023-009', 10, '2023-03-23', '2023-03-26', 'Second Class',   'South'),
+('ORD-2023-010', 7,  '2023-04-03', '2023-04-06', 'Standard Class', 'South'),
+('ORD-2023-011', 22, '2023-04-12', '2023-04-14', 'First Class',    'North'),
+('ORD-2023-012', 8,  '2023-04-22', '2023-04-25', 'Standard Class', 'South'),
+('ORD-2023-013', 3,  '2023-05-04', '2023-05-07', 'Standard Class', 'North'),
+('ORD-2023-014', 32, '2023-05-14', '2023-05-17', 'Second Class',   'North'),
+('ORD-2023-015', 11, '2023-05-23', '2023-05-26', 'Standard Class', 'North'),
+('ORD-2023-016', 5,  '2023-06-03', '2023-06-05', 'Same Day',       'South'),
+('ORD-2023-017', 19, '2023-06-14', '2023-06-17', 'Standard Class', 'North'),
+('ORD-2023-018', 35, '2023-06-23', '2023-06-26', 'First Class',    'North'),
+('ORD-2023-019', 13, '2023-07-05', '2023-07-08', 'Standard Class', 'South'),
+('ORD-2023-020', 2,  '2023-07-15', '2023-07-18', 'Standard Class', 'West'),
+('ORD-2023-021', 38, '2023-07-25', '2023-07-28', 'Second Class',   'West'),
+('ORD-2023-022', 6,  '2023-08-04', '2023-08-07', 'Standard Class', 'West'),
+('ORD-2023-023', 15, '2023-08-14', '2023-08-16', 'First Class',    'South'),
+('ORD-2023-024', 27, '2023-08-24', '2023-08-27', 'Standard Class', 'South'),
+('ORD-2023-025', 9,  '2023-09-04', '2023-09-07', 'Standard Class', 'North'),
+('ORD-2023-026', 40, '2023-09-14', '2023-09-17', 'Same Day',       'West'),
+('ORD-2023-027', 1,  '2023-09-24', '2023-09-27', 'Standard Class', 'West'),
+('ORD-2023-028', 20, '2023-10-05', '2023-10-08', 'Second Class',   'North'),
+('ORD-2023-029', 7,  '2023-10-15', '2023-10-18', 'Standard Class', 'South'),
+('ORD-2023-030', 33, '2023-10-25', '2023-10-28', 'First Class',    'North'),
+('ORD-2023-031', 4,  '2023-11-04', '2023-11-07', 'Standard Class', 'South'),
+('ORD-2023-032', 16, '2023-11-11', '2023-11-13', 'Standard Class', 'West'),
+('ORD-2023-033', 10, '2023-11-22', '2023-11-25', 'Same Day',       'South'),
+('ORD-2023-034', 43, '2023-12-02', '2023-12-05', 'Standard Class', 'South'),
+('ORD-2023-035', 5,  '2023-12-12', '2023-12-14', 'First Class',    'South'),
+('ORD-2023-036', 25, '2023-12-22', '2023-12-25', 'Standard Class', 'North'),
+('ORD-2024-001', 2,  '2024-01-08', '2024-01-11', 'Standard Class', 'West'),
+('ORD-2024-002', 8,  '2024-01-16', '2024-01-19', 'Second Class',   'South'),
+('ORD-2024-003', 12, '2024-01-25', '2024-01-28', 'Standard Class', 'West'),
+('ORD-2024-004', 3,  '2024-02-05', '2024-02-08', 'First Class',    'North'),
+('ORD-2024-005', 45, '2024-02-14', '2024-02-16', 'Standard Class', 'South'),
+('ORD-2024-006', 7,  '2024-02-23', '2024-02-26', 'Standard Class', 'South'),
+('ORD-2024-007', 1,  '2024-03-04', '2024-03-07', 'Same Day',       'West'),
+('ORD-2024-008', 18, '2024-03-14', '2024-03-17', 'Standard Class', 'North'),
+('ORD-2024-009', 6,  '2024-03-24', '2024-03-27', 'Second Class',   'West'),
+('ORD-2024-010', 30, '2024-04-03', '2024-04-06', 'Standard Class', 'South'),
+('ORD-2024-011', 11, '2024-04-13', '2024-04-16', 'First Class',    'North'),
+('ORD-2024-012', 4,  '2024-04-23', '2024-04-26', 'Standard Class', 'South'),
+('ORD-2024-013', 47, '2024-05-04', '2024-05-07', 'Standard Class', 'West'),
+('ORD-2024-014', 9,  '2024-05-14', '2024-05-17', 'Same Day',       'North'),
+('ORD-2024-015', 13, '2024-05-24', '2024-05-27', 'Standard Class', 'South'),
+('ORD-2024-016', 5,  '2024-06-04', '2024-06-07', 'Second Class',   'South'),
+('ORD-2024-017', 22, '2024-06-14', '2024-06-17', 'Standard Class', 'North'),
+('ORD-2024-018', 10, '2024-06-24', '2024-06-27', 'First Class',    'South'),
+('ORD-2024-019', 38, '2024-07-05', '2024-07-08', 'Standard Class', 'West'),
+('ORD-2024-020', 7,  '2024-07-15', '2024-07-18', 'Standard Class', 'South'),
+('ORD-2024-021', 50, '2024-07-25', '2024-07-28', 'Same Day',       'South'),
+('ORD-2024-022', 2,  '2024-08-04', '2024-08-07', 'Standard Class', 'West'),
+('ORD-2024-023', 15, '2024-08-14', '2024-08-17', 'Second Class',   'South'),
+('ORD-2024-024', 43, '2024-08-24', '2024-08-27', 'Standard Class', 'South'),
+('ORD-2024-025', 1,  '2024-09-04', '2024-09-07', 'First Class',    'West'),
+('ORD-2024-026', 28, '2024-09-14', '2024-09-17', 'Standard Class', 'South'),
+('ORD-2024-027', 6,  '2024-09-24', '2024-09-27', 'Standard Class', 'West'),
+('ORD-2024-028', 35, '2024-10-05', '2024-10-08', 'Same Day',       'North'),
+('ORD-2024-029', 9,  '2024-10-15', '2024-10-18', 'Standard Class', 'North'),
+('ORD-2024-030', 4,  '2024-10-25', '2024-10-28', 'Second Class',   'South');
+
+-- ============================================================
+-- INSERT SAMPLE DATA: ORDER ITEMS
+-- ============================================================
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount) VALUES
+('ORD-2022-001', 'TECH-001', 1, 65000, 0.05),
+('ORD-2022-001', 'HOME-001', 1, 4200,  0.00),
+('ORD-2022-002', 'TECH-004', 1, 58000, 0.10),
+('ORD-2022-003', 'FURN-001', 2, 14000, 0.05),
+('ORD-2022-004', 'TECH-002', 1, 95000, 0.00),
+('ORD-2022-005', 'CLTH-003', 2, 6000,  0.10),
+('ORD-2022-006', 'GROC-001', 3, 1900,  0.00),
+('ORD-2022-007', 'TECH-006', 1, 35000, 0.05),
+('ORD-2022-008', 'FURN-002', 1, 20000, 0.10),
+('ORD-2022-009', 'HOME-002', 1, 20000, 0.05),
+('ORD-2022-010', 'TECH-003', 2, 28000, 0.00),
+('ORD-2022-011', 'CLTH-005', 1, 7500,  0.00),
+('ORD-2022-012', 'TECH-001', 1, 65000, 0.05),
+('ORD-2022-013', 'HOME-003', 1, 14500, 0.00),
+('ORD-2022-014', 'FURN-004', 1, 42000, 0.10),
+('ORD-2022-015', 'BOOK-001', 3, 950,   0.00),
+('ORD-2022-016', 'TECH-005', 1, 13500, 0.05),
+('ORD-2022-017', 'CLTH-001', 4, 2200,  0.00),
+('ORD-2022-018', 'GROC-003', 5, 950,   0.00),
+('ORD-2022-019', 'HOME-004', 3, 1500,  0.05),
+('ORD-2022-020', 'TECH-007', 1, 52000, 0.00),
+('ORD-2022-021', 'FURN-006', 1, 35000, 0.05),
+('ORD-2022-022', 'TECH-008', 2, 8500,  0.10),
+('ORD-2022-023', 'HOME-005', 1, 3800,  0.00),
+('ORD-2022-024', 'CLTH-002', 2, 3200,  0.05),
+('ORD-2022-025', 'GROC-004', 6, 520,   0.00),
+('ORD-2022-026', 'TECH-004', 1, 58000, 0.10),
+('ORD-2022-027', 'FURN-003', 2, 6000,  0.00),
+('ORD-2022-028', 'TECH-003', 1, 28000, 0.05),
+('ORD-2022-029', 'TECH-002', 1, 95000, 0.00),
+('ORD-2022-030', 'HOME-001', 2, 4200,  0.00),
+('ORD-2022-031', 'CLTH-004', 1, 4800,  0.05),
+('ORD-2022-032', 'TECH-006', 1, 35000, 0.10),
+('ORD-2022-033', 'BOOK-002', 4, 880,   0.00),
+('ORD-2022-034', 'FURN-005', 1, 30000, 0.05),
+('ORD-2022-035', 'TECH-001', 1, 65000, 0.00),
+('ORD-2022-036', 'HOME-002', 1, 20000, 0.05),
+('ORD-2023-001', 'TECH-002', 1, 95000, 0.00),
+('ORD-2023-002', 'TECH-004', 1, 58000, 0.10),
+('ORD-2023-003', 'FURN-001', 1, 14000, 0.00),
+('ORD-2023-004', 'HOME-003', 1, 14500, 0.05),
+('ORD-2023-005', 'CLTH-003', 2, 6000,  0.10),
+('ORD-2023-006', 'TECH-001', 2, 65000, 0.05),
+('ORD-2023-007', 'TECH-007', 1, 52000, 0.00),
+('ORD-2023-008', 'GROC-001', 4, 1900,  0.00),
+('ORD-2023-009', 'HOME-005', 2, 3800,  0.00),
+('ORD-2023-010', 'TECH-006', 1, 35000, 0.05),
+('ORD-2023-011', 'FURN-002', 1, 20000, 0.10),
+('ORD-2023-012', 'CLTH-005', 2, 7500,  0.00),
+('ORD-2023-013', 'TECH-003', 1, 28000, 0.00),
+('ORD-2023-014', 'HOME-002', 1, 20000, 0.05),
+('ORD-2023-015', 'BOOK-001', 5, 950,   0.00),
+('ORD-2023-016', 'TECH-001', 1, 65000, 0.05),
+('ORD-2023-017', 'FURN-004', 1, 42000, 0.10),
+('ORD-2023-018', 'CLTH-001', 3, 2200,  0.00),
+('ORD-2023-019', 'TECH-004', 1, 58000, 0.10),
+('ORD-2023-020', 'HOME-001', 2, 4200,  0.05),
+('ORD-2023-021', 'TECH-008', 3, 8500,  0.00),
+('ORD-2023-022', 'GROC-002', 5, 1100,  0.00),
+('ORD-2023-023', 'FURN-006', 1, 35000, 0.05),
+('ORD-2023-024', 'TECH-002', 1, 95000, 0.00),
+('ORD-2023-025', 'CLTH-004', 2, 4800,  0.05),
+('ORD-2023-026', 'HOME-004', 4, 1500,  0.00),
+('ORD-2023-027', 'TECH-001', 1, 65000, 0.05),
+('ORD-2023-028', 'FURN-003', 3, 6000,  0.00),
+('ORD-2023-029', 'TECH-006', 1, 35000, 0.10),
+('ORD-2023-030', 'HOME-003', 1, 14500, 0.05),
+('ORD-2023-031', 'CLTH-002', 3, 3200,  0.10),
+('ORD-2023-032', 'TECH-005', 2, 13500, 0.00),
+('ORD-2023-033', 'TECH-003', 2, 28000, 0.05),
+('ORD-2023-034', 'FURN-005', 1, 30000, 0.10),
+('ORD-2023-035', 'TECH-007', 1, 52000, 0.00),
+('ORD-2023-036', 'GROC-003', 4, 950,   0.00),
+('ORD-2024-001', 'TECH-002', 1, 95000, 0.00),
+('ORD-2024-002', 'HOME-002', 1, 20000, 0.05),
+('ORD-2024-003', 'FURN-002', 1, 20000, 0.10),
+('ORD-2024-004', 'TECH-004', 1, 58000, 0.10),
+('ORD-2024-005', 'CLTH-003', 2, 6000,  0.05),
+('ORD-2024-006', 'TECH-001', 1, 65000, 0.05),
+('ORD-2024-007', 'TECH-007', 1, 52000, 0.00),
+('ORD-2024-008', 'HOME-003', 1, 14500, 0.00),
+('ORD-2024-009', 'FURN-001', 2, 14000, 0.05),
+('ORD-2024-010', 'TECH-006', 1, 35000, 0.10),
+('ORD-2024-011', 'CLTH-005', 1, 7500,  0.00),
+('ORD-2024-012', 'TECH-003', 1, 28000, 0.05),
+('ORD-2024-013', 'HOME-001', 2, 4200,  0.00),
+('ORD-2024-014', 'TECH-008', 2, 8500,  0.10),
+('ORD-2024-015', 'FURN-006', 1, 35000, 0.05),
+('ORD-2024-016', 'TECH-002', 1, 95000, 0.00),
+('ORD-2024-017', 'HOME-005', 2, 3800,  0.00),
+('ORD-2024-018', 'TECH-001', 1, 65000, 0.05),
+('ORD-2024-019', 'FURN-004', 1, 42000, 0.10),
+('ORD-2024-020', 'CLTH-001', 4, 2200,  0.00),
+('ORD-2024-021', 'TECH-004', 2, 58000, 0.10),
+('ORD-2024-022', 'HOME-004', 3, 1500,  0.05),
+('ORD-2024-023', 'TECH-006', 1, 35000, 0.05),
+('ORD-2024-024', 'GROC-001', 5, 1900,  0.00),
+('ORD-2024-025', 'TECH-002', 1, 95000, 0.00),
+('ORD-2024-026', 'FURN-005', 1, 30000, 0.05),
+('ORD-2024-027', 'HOME-002', 1, 20000, 0.10),
+('ORD-2024-028', 'TECH-003', 1, 28000, 0.00),
+('ORD-2024-029', 'CLTH-004', 2, 4800,  0.05),
+('ORD-2024-030', 'TECH-001', 1, 65000, 0.05);
+
+-- ============================================================
+-- INSERT SAMPLE DATA: RETURNS
+-- ============================================================
+INSERT INTO returns (order_id, return_date, reason) VALUES
+('ORD-2022-004', '2022-02-20', 'Defective product'),
+('ORD-2022-014', '2022-05-22', 'Wrong item delivered'),
+('ORD-2022-029', '2022-10-22', 'Not as described'),
+('ORD-2023-006', '2023-03-10', 'Changed mind'),
+('ORD-2023-017', '2023-06-21', 'Defective product'),
+('ORD-2023-024', '2023-09-02', 'Wrong item delivered'),
+('ORD-2024-001', '2024-01-18', 'Not as described'),
+('ORD-2024-019', '2024-07-12', 'Defective product');
